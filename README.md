@@ -421,17 +421,17 @@ Real results from training on the credit card fraud detection dataset (284,807 t
 
 | Model | PR-AUC | ROC-AUC | Recall | Precision | F1-Score | Business Cost |
 |-------|--------|---------|--------|-----------|----------|---------------|
-| **Random Forest** (Best) | 0.8319 | 0.9853 | 0.7755 | 0.8539 | 0.8370 | $1140.00 ⭐ |
-| XGBoost (Tuned) | 0.8577 | 0.9878 | 0.7857 | 0.9506 | 0.8603 | $1070.00 |
+| **XGBoost (Tuned)** (Best) | 0.8330 | 0.9878 | 0.7857 | 0.9506 | 0.8144 | $1080.00 ⭐ |
+| Random Forest | 0.8319 | 0.9853 | 0.7755 | 0.8539 | 0.8370 | $1140.00 |
 | LightGBM | 0.8779 | 0.9853 | 0.8469 | 0.8830 | 0.8646 | $805.00 |
 | Logistic Regression | 0.7266 | 0.9741 | 0.7857 | 0.8462 | 0.8148 | $1120.00 |
 
-**Best Model: Random Forest**
-- Training Time: 1768.46 seconds (~29.5 minutes)
+**Best Model: XGBoost (Tuned)**
+- Training Time: 595.16 seconds (~10 minutes)
 - Optuna Trials: 50 hyperparameter optimization trials
 - Optimal Threshold: 0.5
-- Test Set Performance: High recall with balanced precision
-- Business Cost: $1140.00 (optimized for fraud detection cost)
+- Test Set Performance: High precision with balanced recall
+- Business Cost: $1080.00 (optimized for fraud detection cost)
 
 ## 🔒 Security
 

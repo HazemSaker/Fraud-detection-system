@@ -31,4 +31,9 @@ def tune_hyperparameters(X_train, y_train, X_val, y_val, model_type="xgboost", n
     logger.info(f"Best trial: {study.best_trial.params}")
     logger.info(f"Best score: {study.best_value}")
     
-    return study.best_trial.params, study.best_value
+    # Train final model with best parameters on full training data
+    best_params = study.best_trial.params
+    best_model = xgb.XGBClassifier(**best_params, random_state=42, eval_metric='aucpr')
+    best_model.fit(X_train, y_train, eval_set=[(X_val, y_val)], early_stopping_rounds=10, verbose=False)
+    
+    return best_params, study.best_value, best_model
