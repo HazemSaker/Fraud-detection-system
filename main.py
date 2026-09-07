@@ -95,13 +95,13 @@ def run_fraud_detection_pipeline(
                 logger.info("=" * 80)
                 logger.info("STEP 6: Running hyperparameter tuning...")
                 logger.info("=" * 80)
-                best_params, best_score, tuned_model = tune_hyperparameters(
+                best_params, best_score, tuned_model, optimal_threshold = tune_hyperparameters(
                     X_train, y_train, X_val, y_val, n_trials=n_trials
                 )
                 mlflow.log_params(best_params)
                 # Add tuned model to models dictionary for evaluation
                 models["xgboost_tuned"] = tuned_model
-                thresholds["xgboost_tuned"] = 0.5
+                thresholds["xgboost_tuned"] = optimal_threshold
             
             # Step 7: Evaluate models
             logger.info("=" * 80)
