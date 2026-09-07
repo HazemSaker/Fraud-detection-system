@@ -1,0 +1,13 @@
+# Parameters for DVC pipeline
+
+prepare:
+  input_path: data/raw/creditcard.csv
+  output_dir: data/processed
+
+train:
+  run_tuning: true
+  n_trials: 50
+  n_fraud_samples: 100
+  test_size: 0.2
+  val_size: 0.1
+  random_state: 42

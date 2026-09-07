@@ -1,0 +1,47 @@
+# DVC configuration for Fraud Detection System
+
+# Data pipeline stages
+stages:
+  # Data preparation stage
+  prepare_data:
+    cmd: python scripts/prepare_data.py
+    deps:
+      - scripts/prepare_data.py
+    params:
+      - prepare
+    outs:
+      - data/processed/train.csv
+      - data/processed/val.csv
+      - data/processed/test.csv
+
+  # Training stage
+  train:
+    cmd: python main.py
+    deps:
+      - main.py
+      - app/
+      - config/
+      - data/processed/train.csv
+      - data/processed/val.csv
+    params:
+      - train
+      - model
+    metrics:
+      - outputs/metrics.json:
+          cache: false
+    outs:
+      - outputs/best_model.pkl
+      - outputs/scaler.pkl
+      - outputs/threshold.txt
+
+  # Evaluation stage
+  evaluate:
+    cmd: python scripts/evaluate.py
+    deps:
+      - scripts/evaluate.py
+      - outputs/best_model.pkl
+      - outputs/scaler.pkl
+      - data/processed/test.csv
+    metrics:
+      - outputs/evaluation_metrics.json:
+          cache: false

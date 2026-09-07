@@ -1,0 +1,29 @@
+# Add patterns of files dvc should ignore
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Outputs
+outputs/
+*.pkl
+*.joblib
