@@ -2,7 +2,7 @@
 
 A production-ready machine learning pipeline for real-time credit card fraud detection with comprehensive monitoring, explainability, and deployment capabilities.
 
-## 🚀 Features
+## Features
 
 ### Machine Learning Pipeline
 - **Multi-model Training**: XGBoost, LightGBM, Random Forest, Logistic Regression
@@ -37,7 +37,7 @@ A production-ready machine learning pipeline for real-time credit card fraud det
 - **Integration Tests**: API endpoint testing
 - **Test Coverage**: Pytest with coverage reporting
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
@@ -51,7 +51,7 @@ A production-ready machine learning pipeline for real-time credit card fraud det
 - [Model Explainability](#model-explainability)
 - [Performance Metrics](#performance-metrics)
 
-## 🔧 Installation
+## Installation
 
 ### Prerequisites
 
@@ -102,7 +102,7 @@ git add data/raw/creditcard.csv.dvc .gitignore
 git commit -m "Add raw data"
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Training the Model
 
@@ -202,7 +202,7 @@ curl -X POST "http://localhost:8000/api/v1/predict" \
 Batch predictions (up to 100 transactions per request) work the same way,
 against `/api/v1/predict/batch`, with a `{"transactions": [...]}` body.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 latest/
@@ -256,7 +256,7 @@ latest/
 └── README.md                  # This file
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 Configuration is managed through environment variables and the `.env` file. Key configuration options:
 
@@ -286,7 +286,7 @@ Configuration is managed through environment variables and the `.env` file. Key 
 - `SECRET_KEY`: JWT secret key
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration
 
-## 🎯 Training Pipeline
+## Training Pipeline
 
 The training pipeline follows these steps:
 
@@ -311,7 +311,7 @@ results = run_fraud_detection_pipeline(
 )
 ```
 
-## 🐳 API Deployment
+## API Deployment
 
 ### Docker Deployment
 
@@ -337,7 +337,7 @@ This starts:
 - Prometheus (port 9090)
 - Grafana (port 3000)
 
-## 📊 Monitoring
+## Monitoring
 
 ### Prometheus Metrics
 
@@ -353,7 +353,7 @@ The API exposes Prometheus metrics at `/metrics`:
 
 Access Grafana at `http://localhost:3000` (admin/admin)
 
-## 🧪 Testing
+## Testing
 
 ### Run All Tests
 
@@ -373,7 +373,7 @@ pytest tests/unit/ -v
 pytest tests/integration/ -v
 ```
 
-## 📖 API Documentation
+## API Documentation
 
 ### Interactive Documentation
 
@@ -419,7 +419,7 @@ GET /api/v1/model/info
 GET /metrics
 ```
 
-## 🔍 Model Explainability
+## Model Explainability
 
 ### SHAP Explanations
 
@@ -438,7 +438,7 @@ HTML reports are generated in `outputs/explanations/`:
 - `shap_summary.png`: SHAP analysis report
 - `lime_explanation_*.html`: LIME analysis report
 
-## 📈 Performance Metrics
+## Performance Metrics
 
 ### Evaluation Metrics
 
@@ -475,7 +475,7 @@ lower business cost ($990 vs $1035), since the cost function penalizes
 false negatives more heavily than PR-AUC alone reflects. Both are
 reasonable picks depending on what you're optimizing for.
 
-## 🔒 Security
+## Security
 
 ### Authentication
 
@@ -493,7 +493,7 @@ Default: 100 requests per 60 seconds per IP address.
 
 All inputs are validated using Pydantic schemas with type checking and range validation.
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -501,10 +501,10 @@ All inputs are validated using Pydantic schemas with type checking and range val
 4. Run tests: `pytest tests/`
 5. Submit a pull request
 
-## 📝 License
+## License
 
 This project is for educational and demonstration purposes.
 
-## 📧 Contact
+## Contact
 
 For questions or issues, please refer to the project documentation or create an issue in the repository.
