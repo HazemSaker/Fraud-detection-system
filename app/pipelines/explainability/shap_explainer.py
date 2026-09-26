@@ -1,11 +1,13 @@
 """
 SHAP explainability implementation
 """
-import shap
+
 import builtins
 import contextlib
 import logging
 from pathlib import Path
+
+import shap
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +57,9 @@ def _tolerate_bracketed_base_score():
 
 def generate_shap_explanations(model, X_test, feature_names, n_samples=100):
     """Generate SHAP explanations for model interpretability"""
-    logger.info("Creating SHAP explainer with {} background samples...".format(n_samples))
+    logger.info(
+        "Creating SHAP explainer with {} background samples...".format(n_samples)
+    )
 
     with _tolerate_bracketed_base_score():
         explainer = shap.TreeExplainer(model, shap.sample(X_test, n_samples))
@@ -67,7 +71,8 @@ def generate_shap_explanations(model, X_test, feature_names, n_samples=100):
 
     shap.summary_plot(shap_values, X_test, feature_names=feature_names, show=False)
     import matplotlib.pyplot as plt
-    plt.savefig(output_dir / "shap_summary.png", bbox_inches='tight', dpi=150)
+
+    plt.savefig(output_dir / "shap_summary.png", bbox_inches="tight", dpi=150)
     plt.close()
 
     logger.info("SHAP explanations saved to {}".format(output_dir))

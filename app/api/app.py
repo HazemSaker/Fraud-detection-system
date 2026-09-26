@@ -1,33 +1,38 @@
 """
 FastAPI application for fraud detection
 """
-from fastapi import FastAPI, HTTPException, Request, Depends
-from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+import json
+import time
+import uuid
 from datetime import datetime
 from pathlib import Path
-import json
-import uuid
+
 import joblib
 import numpy as np
 import pandas as pd
-import time
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from config.settings import settings
-from app.api.schemas import (
-    TransactionRequest, PredictionResponse, HealthResponse, ModelInfoResponse,
-    BatchPredictionRequest, BatchPredictionResponse,
-)
+from app.api.auth import (create_access_token, get_password_hash,
+                          verify_password, verify_token)
+from app.api.monitoring import (APITimer, PredictionTimer, get_metrics,
+                                record_prediction)
 from app.api.rate_limiter import check_rate_limit
-from app.api.monitoring import PredictionTimer, APITimer, record_prediction, get_metrics
-from app.api.auth import create_access_token, verify_token, verify_password, get_password_hash
+from app.api.schemas import (BatchPredictionRequest, BatchPredictionResponse,
+                             HealthResponse, ModelInfoResponse,
+                             PredictionResponse, TransactionRequest)
+from config.settings import settings
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
 
 # Global variables
 model = None
 scaler = None
-threshold = settings.THRESHOLD  # overwritten at startup from model_metadata.json if present
+threshold = (
+    settings.THRESHOLD
+)  # overwritten at startup from model_metadata.json if present
 model_type = "unknown"
 feature_names = None
 start_time = time.time()
@@ -63,7 +68,6 @@ async def require_auth(token: str = Depends(oauth2_scheme)) -> None:
     verify_token(token)
 
 
-
 @app.on_event("startup")
 async def startup_event():
     """Load model and scaler on startup"""
@@ -76,7 +80,9 @@ async def startup_event():
             # Don't take down model loading over an auth backend issue --
             # log it clearly and leave auth effectively unusable (login
             # will fail cleanly) rather than crashing the whole process.
-            print(f"Could not hash demo password (check passlib/bcrypt versions in requirements.txt): {e}")
+            print(
+                f"Could not hash demo password (check passlib/bcrypt versions in requirements.txt): {e}"
+            )
 
     try:
         model = joblib.load(settings.MODEL_PATH)
@@ -86,10 +92,39 @@ async def startup_event():
         # Hour from it) but does NOT drop Amount -- it only adds
         # Amount_log alongside the original Amount column. So the scaler
         # was actually fit on 31 columns, including raw Amount, not 30.
-        feature_names = ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10',
-                        'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17', 'V18', 'V19', 'V20',
-                        'V21', 'V22', 'V23', 'V24', 'V25', 'V26', 'V27', 'V28',
-                        'Amount', 'Hour', 'Amount_log']
+        feature_names = [
+            "V1",
+            "V2",
+            "V3",
+            "V4",
+            "V5",
+            "V6",
+            "V7",
+            "V8",
+            "V9",
+            "V10",
+            "V11",
+            "V12",
+            "V13",
+            "V14",
+            "V15",
+            "V16",
+            "V17",
+            "V18",
+            "V19",
+            "V20",
+            "V21",
+            "V22",
+            "V23",
+            "V24",
+            "V25",
+            "V26",
+            "V27",
+            "V28",
+            "Amount",
+            "Hour",
+            "Amount_log",
+        ]
 
         # Read the metadata main.py saves alongside best_model.pkl, so the
         # API reports the model that was actually saved (not a hardcoded
@@ -101,9 +136,13 @@ async def startup_event():
                 meta = json.load(f)
             threshold = meta["threshold"]
             model_type = meta["model_name"]
-            print(f"Loaded {model_type} (threshold={threshold}) from model_metadata.json")
+            print(
+                f"Loaded {model_type} (threshold={threshold}) from model_metadata.json"
+            )
         else:
-            print(f"No model_metadata.json found -- falling back to .env THRESHOLD={threshold}")
+            print(
+                f"No model_metadata.json found -- falling back to .env THRESHOLD={threshold}"
+            )
 
         print("Model and scaler loaded successfully")
     except Exception as e:
@@ -125,7 +164,7 @@ async def health():
         scaler_loaded=scaler is not None,
         model_version=settings.MODEL_VERSION,
         uptime_seconds=time.time() - start_time,
-        timestamp=datetime.utcnow().isoformat()
+        timestamp=datetime.utcnow().isoformat(),
     )
 
 
@@ -134,7 +173,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """Issue a JWT for the demo user. See DEMO_USERNAME/DEMO_PASSWORD_HASH
     above -- swap this check for a real user lookup before deploying."""
     if DEMO_PASSWORD_HASH is None:
-        raise HTTPException(status_code=503, detail="Auth backend unavailable (check server logs)")
+        raise HTTPException(
+            status_code=503, detail="Auth backend unavailable (check server logs)"
+        )
     if form_data.username != DEMO_USERNAME or not verify_password(
         form_data.password, DEMO_PASSWORD_HASH
     ):
@@ -178,12 +219,14 @@ def _score_transaction(transaction: TransactionRequest) -> PredictionResponse:
         threshold=threshold,
         model_version=settings.MODEL_VERSION,
         prediction_id=str(uuid.uuid4()),
-        timestamp=datetime.utcnow().isoformat()
+        timestamp=datetime.utcnow().isoformat(),
     )
 
 
 @app.post("/api/v1/predict", response_model=PredictionResponse)
-async def predict(transaction: TransactionRequest, request: Request, _: None = Depends(require_auth)):
+async def predict(
+    transaction: TransactionRequest, request: Request, _: None = Depends(require_auth)
+):
     """Predict fraud for a single transaction"""
     # Rate limiting
     client_ip = request.client.host
@@ -197,7 +240,9 @@ async def predict(transaction: TransactionRequest, request: Request, _: None = D
 
 
 @app.post("/api/v1/predict/batch", response_model=BatchPredictionResponse)
-async def predict_batch(batch: BatchPredictionRequest, request: Request, _: None = Depends(require_auth)):
+async def predict_batch(
+    batch: BatchPredictionRequest, request: Request, _: None = Depends(require_auth)
+):
     """Predict fraud for a batch of transactions (up to 100 per request, see
     BatchPredictionRequest). One rate-limit check per call, not per
     transaction, and one HTTP round trip instead of N."""
@@ -215,7 +260,7 @@ async def predict_batch(batch: BatchPredictionRequest, request: Request, _: None
             predictions=predictions,
             total_count=len(predictions),
             fraud_count=fraud_count,
-            timestamp=datetime.utcnow().isoformat()
+            timestamp=datetime.utcnow().isoformat(),
         )
 
 
@@ -226,7 +271,7 @@ async def model_info():
         model_version=settings.MODEL_VERSION,
         model_type=model_type,
         features=feature_names if feature_names else [],
-        threshold=threshold
+        threshold=threshold,
     )
 
 
@@ -239,7 +284,4 @@ async def metrics():
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Global exception handler"""
-    return JSONResponse(
-        status_code=500,
-        content={"detail": str(exc)}
-    )
+    return JSONResponse(status_code=500, content={"detail": str(exc)})

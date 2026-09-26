@@ -1,12 +1,15 @@
 """
 API request/response schemas
 """
-from pydantic import BaseModel, Field
+
 from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class TransactionRequest(BaseModel):
     """Schema for fraud prediction request"""
+
     Time: float = Field(..., ge=0, description="Transaction time in seconds")
     Amount: float = Field(..., ge=0, description="Transaction amount")
     V1: float
@@ -43,6 +46,7 @@ class TransactionRequest(BaseModel):
 
 class PredictionResponse(BaseModel):
     """Schema for fraud prediction response"""
+
     is_fraud: bool
     fraud_probability: float
     confidence: str
@@ -55,11 +59,13 @@ class PredictionResponse(BaseModel):
 class BatchPredictionRequest(BaseModel):
     """Schema for batch fraud prediction request. Capped at 100 per request
     to keep a single call's latency and memory bounded."""
+
     transactions: list[TransactionRequest] = Field(..., min_length=1, max_length=100)
 
 
 class BatchPredictionResponse(BaseModel):
     """Schema for batch fraud prediction response"""
+
     predictions: list[PredictionResponse]
     total_count: int
     fraud_count: int
@@ -68,6 +74,7 @@ class BatchPredictionResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Schema for health check response"""
+
     status: str
     model_loaded: bool
     scaler_loaded: bool
@@ -78,6 +85,7 @@ class HealthResponse(BaseModel):
 
 class ModelInfoResponse(BaseModel):
     """Schema for model information response"""
+
     model_version: str
     model_type: str
     features: list

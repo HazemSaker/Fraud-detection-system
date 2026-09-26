@@ -1,13 +1,17 @@
 """
 Unit tests for API schemas
 """
-import pytest
-from pydantic import ValidationError
+
 import sys
 from pathlib import Path
+
+import pytest
+from pydantic import ValidationError
+
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from app.api.schemas import TransactionRequest, PredictionResponse, HealthResponse
+from app.api.schemas import (HealthResponse, PredictionResponse,
+                             TransactionRequest)
 
 
 def test_transaction_request_valid():
@@ -43,9 +47,9 @@ def test_transaction_request_valid():
         V26=-0.023425,
         V27=0.012321,
         V28=0.003521,
-        Amount=149.62
+        Amount=149.62,
     )
-    
+
     assert transaction.Time == 0.0
     assert transaction.Amount == 149.62
 
@@ -84,7 +88,7 @@ def test_transaction_request_invalid_amount():
             V26=-0.023425,
             V27=0.012321,
             V28=0.003521,
-            Amount=149.62
+            Amount=149.62,
         )
 
 
@@ -97,9 +101,9 @@ def test_prediction_response():
         threshold=0.5,
         model_version="latest",
         prediction_id="test-id",
-        timestamp="2024-01-01T12:00:00.000000"
+        timestamp="2024-01-01T12:00:00.000000",
     )
-    
+
     assert response.is_fraud is False
     assert response.fraud_probability == 0.1234
     assert response.confidence == "Low"
@@ -113,9 +117,9 @@ def test_health_response():
         scaler_loaded=True,
         model_version="latest",
         uptime_seconds=123.45,
-        timestamp="2024-01-01T12:00:00.000000"
+        timestamp="2024-01-01T12:00:00.000000",
     )
-    
+
     assert response.status == "healthy"
     assert response.model_loaded is True
     assert response.scaler_loaded is True

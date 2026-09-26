@@ -1,10 +1,12 @@
 """
 Pytest configuration and fixtures
 """
-import pytest
-import pandas as pd
-import numpy as np
+
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pytest
 
 
 @pytest.fixture
@@ -12,17 +14,17 @@ def sample_data():
     """Create sample transaction data for testing"""
     np.random.seed(42)
     n_samples = 1000
-    
+
     data = {
-        'Time': np.random.uniform(0, 172800, n_samples),
-        'Amount': np.random.uniform(0, 1000, n_samples),
-        'Class': np.random.choice([0, 1], n_samples, p=[0.99, 0.01])
+        "Time": np.random.uniform(0, 172800, n_samples),
+        "Amount": np.random.uniform(0, 1000, n_samples),
+        "Class": np.random.choice([0, 1], n_samples, p=[0.99, 0.01]),
     }
-    
+
     # Add V1-V28 features
     for i in range(1, 29):
-        data[f'V{i}'] = np.random.normal(0, 1, n_samples)
-    
+        data[f"V{i}"] = np.random.normal(0, 1, n_samples)
+
     return pd.DataFrame(data)
 
 
@@ -60,5 +62,5 @@ def sample_transaction():
         "V26": -0.023425,
         "V27": 0.012321,
         "V28": 0.003521,
-        "Amount": 149.62
+        "Amount": 149.62,
     }
