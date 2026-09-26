@@ -3,13 +3,33 @@ Main training pipeline orchestrator for Fraud Detection System
 """
 import mlflow
 import logging
+import json
 import joblib
+import numpy as np
 from pathlib import Path
 from datetime import datetime
 
 from config.settings import settings
 from app.core.logging_config import get_logger, setup_logging
 from app.core.exceptions import TrainingError
+
+
+class NumpyJSONEncoder(json.JSONEncoder):
+    """evaluator.py's business_cost is computed from raw numpy int64 values
+    (fp * 5 + fn * 50) before the *other* confusion-matrix fields get cast
+    to native int, so it slips through as numpy.int64 -- which json.dump()
+    doesn't know how to serialize. Handling numpy scalar types generically
+    here (rather than casting business_cost by hand in evaluator.py) also
+    covers any other numpy type that ends up in metadata later."""
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
 from app.pipelines.steps import (
     load_data,
     split_data,
@@ -149,10 +169,30 @@ def run_fraud_detection_pipeline(
             with open(threshold_path, 'w') as f:
                 f.write(str(thresholds[best_model_name]))
             mlflow.log_artifact(str(threshold_path))
-            
+
+            # Save metadata (model name/class + threshold + metrics together).
+            # This is what the API reads at startup instead of guessing the
+            # model type and instead of trusting a possibly-stale THRESHOLD
+            # in .env -- previously those two things could silently drift
+            # apart from whatever best_model.pkl actually was.
+            metadata = {
+                "model_name": best_model_name,
+                "model_class": type(best_model).__name__,
+                "threshold": thresholds[best_model_name],
+                "pr_auc": all_metrics[best_model_name]["pr_auc"],
+                "f1_score": all_metrics[best_model_name]["f1_score"],
+                "business_cost": all_metrics[best_model_name]["business_cost"],
+                "trained_at": datetime.now().isoformat(),
+            }
+            metadata_path = settings.OUTPUTS_DIR / "model_metadata.json"
+            with open(metadata_path, 'w') as f:
+                json.dump(metadata, f, indent=2, cls=NumpyJSONEncoder)
+            mlflow.log_artifact(str(metadata_path))
+
             logger.info(f"Model saved to {model_path}")
             logger.info(f"Scaler saved to {scaler_path}")
             logger.info(f"Threshold saved to {threshold_path}")
+            logger.info(f"Metadata saved to {metadata_path}")
             
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()

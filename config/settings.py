@@ -62,6 +62,20 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # If False, /api/v1/predict skips JWT verification entirely (useful for
+    # local testing/demos). Set True to actually enforce the token issued
+    # by POST /token -- this is what makes the JWT auth in auth.py "live"
+    # instead of just present-but-unused.
+    ENABLE_AUTH: bool = True
+
+    @field_validator('ENABLE_AUTH', mode='before')
+    @classmethod
+    def parse_enable_auth(cls, v: Any) -> bool:
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            return v.lower() in ('true', '1', 'yes', 'on')
+        return bool(v)
     
     # Rate Limiting
     RATE_LIMIT_REQUESTS: int = 100

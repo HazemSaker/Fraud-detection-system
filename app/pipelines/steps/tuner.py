@@ -40,12 +40,19 @@ def tune_hyperparameters(X_train, y_train, X_val, y_val, model_type="xgboost", n
                 "subsample": trial.suggest_float("subsample", 0.6, 1.0),
                 "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
             }
-            model = xgb.XGBClassifier(**params, random_state=42, eval_metric='aucpr')
-            model.fit(X_train, y_train, eval_set=[(X_val, y_val)], early_stopping_rounds=10, verbose=False)
+            # early_stopping_rounds goes in the constructor, not .fit() --
+            # same version issue as trainer.py's XGBoost block.
+            model = xgb.XGBClassifier(**params, random_state=42, eval_metric='aucpr', early_stopping_rounds=10)
+            model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
             y_proba = model.predict_proba(X_val)[:, 1]
             return average_precision_score(y_val, y_proba)
     
-    study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler())
+    # seed=42 matches random_state=42 used everywhere else in the pipeline
+    # (data split, SMOTE, all four baseline models). Without it, Optuna's
+    # search explores a different path each run, which is what caused the
+    # "best model" to flip between xgboost_tuned and lightgbm across runs
+    # on identical data/code.
+    study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler(seed=42))
     study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
     
     logger.info(f"Best trial: {study.best_trial.params}")
@@ -53,8 +60,8 @@ def tune_hyperparameters(X_train, y_train, X_val, y_val, model_type="xgboost", n
     
     # Train final model with best parameters on full training data
     best_params = study.best_trial.params
-    best_model = xgb.XGBClassifier(**best_params, random_state=42, eval_metric='aucpr')
-    best_model.fit(X_train, y_train, eval_set=[(X_val, y_val)], early_stopping_rounds=10, verbose=False)
+    best_model = xgb.XGBClassifier(**best_params, random_state=42, eval_metric='aucpr', early_stopping_rounds=10)
+    best_model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
     
     # Find optimal threshold
     y_proba = best_model.predict_proba(X_val)[:, 1]

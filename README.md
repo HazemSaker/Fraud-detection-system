@@ -16,11 +16,11 @@ A production-ready machine learning pipeline for real-time credit card fraud det
 ### Production API
 - **FastAPI Framework**: High-performance async API
 - **Data Validation**: Pydantic schemas with comprehensive validation
-- **Authentication**: JWT-based authentication (configurable)
+- **Authentication**: JWT-based, enforced by default (`ENABLE_AUTH=true`); toggle off for local testing
 - **Rate Limiting**: In-memory rate limiter for API protection
 - **Monitoring**: Prometheus metrics integration
 - **Health Checks**: Comprehensive health check endpoints
-- **Batch Processing**: Support for batch predictions
+- **Batch Processing**: `/api/v1/predict/batch`, up to 100 transactions per request
 - **Error Handling**: Structured error responses with proper HTTP status codes
 
 ### DevOps & Infrastructure
@@ -64,7 +64,8 @@ A production-ready machine learning pipeline for real-time credit card fraud det
 
 1. **Clone the repository**
 ```bash
-cd "c:/Users/Asus/vs code files/Fraud detection system/latest"
+git clone https://github.com/<your-username>/<new-repo-name>.git
+cd <new-repo-name>
 ```
 
 2. **Create virtual environment**
@@ -147,8 +148,22 @@ docker-compose up --build
 
 ### Making Predictions
 
+Authentication is on by default (`ENABLE_AUTH=true` in `.env`). Get a token first:
+
+```bash
+curl -X POST "http://localhost:8000/token" \
+  -d "username=admin&password=changeme"
+# -> {"access_token": "...", "token_type": "bearer"}
+```
+
+> Demo credentials only -- see `app/api/app.py`. Replace with a real user
+> store, or set `ENABLE_AUTH=false` for local testing without a token.
+
+Then use it on `/predict`:
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/predict" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
     "Time": 0.0,
@@ -183,6 +198,9 @@ curl -X POST "http://localhost:8000/api/v1/predict" \
     "Amount": 149.62
   }'
 ```
+
+Batch predictions (up to 100 transactions per request) work the same way,
+against `/api/v1/predict/batch`, with a `{"transactions": [...]}` body.
 
 ## 📁 Project Structure
 
@@ -369,10 +387,26 @@ pytest tests/integration/ -v
 GET /health
 ```
 
+#### Get Auth Token
+```
+POST /token
+Content-Type: application/x-www-form-urlencoded
+Body: username=admin&password=changeme
+```
+
 #### Single Prediction
 ```
 POST /api/v1/predict
 Content-Type: application/json
+Authorization: Bearer <token>   (unless ENABLE_AUTH=false)
+```
+
+#### Batch Prediction
+```
+POST /api/v1/predict/batch
+Content-Type: application/json
+Authorization: Bearer <token>   (unless ENABLE_AUTH=false)
+Body: {"transactions": [...]}   (max 100 per request)
 ```
 
 #### Model Info
@@ -415,30 +449,41 @@ HTML reports are generated in `outputs/explanations/`:
 - **F1-Score**: Harmonic mean of precision and recall
 - **Business Cost**: Custom cost function (FP: $5, FN: $50)
 
-### Actual Measured Performance
+### Verified Performance
 
-Real results from training on the credit card fraud detection dataset (284,807 transactions, 492 fraud cases, 0.17% fraud ratio):
+Results from the reproducible pipeline (seeded Optuna hyperparameter search,
+so these numbers reproduce run-to-run) on the credit card fraud dataset
+(284,807 transactions, 492 fraud cases, 0.17% fraud ratio; 56,962 in the
+held-out test set, 99 of them fraud):
 
-| Model | PR-AUC | ROC-AUC | Recall | Precision | F1-Score | Business Cost | Optimal Threshold |
-|-------|--------|---------|--------|-----------|----------|---------------|------------------|
-| **Random Forest** (Best) | 0.8319 | 0.9853 | 0.7879 | 0.8980 | 0.8409 | $1265.00 ⭐ | 0.80 |
-| XGBoost (Tuned) | 0.8201 | 0.9566 | 0.7778 | 0.8556 | 0.8148 | $1165.00 | 0.65 |
-| LightGBM | 0.8779 | 0.9853 | 0.8469 | 0.8830 | 0.8646 | $805.00 | 0.75 |
-| XGBoost (Baseline) | 0.7409 | 0.9688 | 0.8485 | 0.1958 | 0.3182 | $2475.00 | 0.70 |
-| Logistic Regression | 0.7266 | 0.9741 | 0.7857 | 0.8462 | 0.8148 | $1120.00 | 0.85 |
+| Model | PR-AUC | ROC-AUC | Recall | Precision | F1-Score | Business Cost | Threshold |
+|-------|--------|---------|--------|-----------|----------|---------------|-----------|
+| **XGBoost (Tuned)** (Best) | 0.8352 | 0.9668 | 0.7980 | 0.9186 | 0.8541 | $1035 ⭐ | 0.70 |
+| LightGBM | 0.8318 | 0.9666 | 0.8081 | 0.9091 | 0.8556 | $990 | 0.75 |
+| Random Forest | 0.8316 | 0.9480 | 0.7475 | 0.9610 | 0.8409 | $1265 | 0.65 |
+| XGBoost (Baseline) | 0.8096 | 0.9642 | 0.7778 | 0.8953 | 0.8324 | $1145 | 0.80 |
+| Logistic Regression | 0.7410 | 0.9688 | 0.8485 | 0.1949 | 0.3170 | $2485 | 0.85 |
 
-**Best Model: Random Forest**
-- Training Time: 1839.75 seconds (~30.7 minutes)
-- Optuna Trials: 50 hyperparameter optimization trials
-- Optimal Threshold: 0.80 (optimized for F1-Score)
-- Test Set Performance: Balanced recall and precision
-- Business Cost: $1265.00 (optimized for fraud detection cost)
+**Best Model (selected automatically by PR-AUC): XGBoost, tuned**
+- Hyperparameter search: Optuna, 50 trials, TPE sampler (seeded, reproducible)
+- Threshold: 0.70 (optimized for F1-score)
+- Business Cost: $1035 (FP: $5, FN: $50)
+
+Worth noting: the pipeline selects "best" by PR-AUC, where XGBoost-tuned
+and LightGBM are within 0.003 of each other -- but LightGBM actually has a
+lower business cost ($990 vs $1035), since the cost function penalizes
+false negatives more heavily than PR-AUC alone reflects. Both are
+reasonable picks depending on what you're optimizing for.
 
 ## 🔒 Security
 
 ### Authentication
 
-JWT-based authentication is implemented and can be enabled via configuration.
+JWT-based authentication, enforced by default. `POST /token` with the demo
+credentials (see `app/api/app.py` -- replace before deploying anywhere but
+your own machine) returns a bearer token; `/predict` and `/predict/batch`
+require it. Set `ENABLE_AUTH=false` in `.env` to disable enforcement for
+local testing without a token.
 
 ### Rate Limiting
 

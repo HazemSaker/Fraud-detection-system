@@ -52,6 +52,20 @@ class PredictionResponse(BaseModel):
     timestamp: str
 
 
+class BatchPredictionRequest(BaseModel):
+    """Schema for batch fraud prediction request. Capped at 100 per request
+    to keep a single call's latency and memory bounded."""
+    transactions: list[TransactionRequest] = Field(..., min_length=1, max_length=100)
+
+
+class BatchPredictionResponse(BaseModel):
+    """Schema for batch fraud prediction response"""
+    predictions: list[PredictionResponse]
+    total_count: int
+    fraud_count: int
+    timestamp: str
+
+
 class HealthResponse(BaseModel):
     """Schema for health check response"""
     status: str

@@ -38,14 +38,19 @@ def train_multiple_models(X_train, y_train, X_val, y_val):
     
     # XGBoost
     logger.info("Training XGBoost...")
+    # early_stopping_rounds moved here from .fit() -- recent XGBoost
+    # versions (2.1+) dropped it as a .fit() kwarg entirely and raise
+    # TypeError if you pass it there. The constructor argument works across
+    # both old and new XGBoost, so this is the version-safe spot for it.
     xgb_model = xgb.XGBClassifier(
         n_estimators=100,
         learning_rate=0.1,
         max_depth=6,
         random_state=42,
-        eval_metric='aucpr'
+        eval_metric='aucpr',
+        early_stopping_rounds=10
     )
-    xgb_model.fit(X_train, y_train, eval_set=[(X_val, y_val)], early_stopping_rounds=10, verbose=False)
+    xgb_model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
     models["xgboost"] = xgb_model
     y_proba = xgb_model.predict_proba(X_val)[:, 1]
     thresholds["xgboost"] = find_optimal_threshold(y_val, y_proba)
