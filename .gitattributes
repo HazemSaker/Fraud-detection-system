@@ -1,0 +1,14 @@
+# Force LF line endings for all text files in the repository, regardless
+# of the committer's local git config (core.autocrlf). Without this,
+# black on Windows preserves whatever line-ending style a file already
+# has, and CRLF-vs-LF mismatches between a Windows dev machine and the
+# Linux CI runner can make `black --check` disagree with a local `black`
+# run on files that look identical to the naked eye.
+* text=auto eol=lf
+
+# Binary files: don't touch line endings at all
+*.pkl binary
+*.joblib binary
+*.png binary
+*.jpg binary
+*.jpeg binary
