@@ -47,7 +47,6 @@ def test_transaction_request_valid():
         V26=-0.023425,
         V27=0.012321,
         V28=0.003521,
-        Amount=149.62,
     )
 
     assert transaction.Time == 0.0
@@ -88,7 +87,6 @@ def test_transaction_request_invalid_amount():
             V26=-0.023425,
             V27=0.012321,
             V28=0.003521,
-            Amount=149.62,
         )
 
 
