@@ -1,5 +1,4 @@
-from app.pipelines.steps.data_loader import (load_data, split_data,
-                                             validate_data_quality)
+from app.pipelines.steps.data_loader import load_data, split_data, validate_data_quality
 from app.pipelines.steps.evaluator import evaluate_all_models, evaluate_model
 from app.pipelines.steps.explainer import generate_explanations
 from app.pipelines.steps.preprocessor import preprocess_data

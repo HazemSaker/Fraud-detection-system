@@ -13,8 +13,9 @@ def generate_explanations(model, X_test, feature_names, n_samples=100):
 
     try:
         # SHAP explanations
-        from app.pipelines.explainability.shap_explainer import \
-            generate_shap_explanations
+        from app.pipelines.explainability.shap_explainer import (
+            generate_shap_explanations,
+        )
 
         generate_shap_explanations(model, X_test, feature_names, n_samples)
         logger.info("SHAP explanations generated")
@@ -23,8 +24,9 @@ def generate_explanations(model, X_test, feature_names, n_samples=100):
 
     try:
         # LIME explanations
-        from app.pipelines.explainability.lime_explainer import \
-            generate_lime_explanations
+        from app.pipelines.explainability.lime_explainer import (
+            generate_lime_explanations,
+        )
 
         generate_lime_explanations(model, X_test, feature_names, n_samples)
         logger.info("LIME explanations generated")

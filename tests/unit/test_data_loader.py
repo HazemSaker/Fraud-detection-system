@@ -11,8 +11,7 @@ import pytest
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from app.pipelines.steps.data_loader import (load_data, split_data,
-                                             validate_data_quality)
+from app.pipelines.steps.data_loader import load_data, split_data, validate_data_quality
 
 
 def test_load_data(sample_data):

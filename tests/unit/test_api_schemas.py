@@ -10,8 +10,7 @@ from pydantic import ValidationError
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from app.api.schemas import (HealthResponse, PredictionResponse,
-                             TransactionRequest)
+from app.api.schemas import HealthResponse, PredictionResponse, TransactionRequest
 
 
 def test_transaction_request_valid():

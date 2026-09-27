@@ -1,6 +1,11 @@
-from .exceptions import (DataValidationError, FraudDetectionException,
-                         ModelLoadError, PredictionError, TrainingError,
-                         to_http_exception)
+from .exceptions import (
+    DataValidationError,
+    FraudDetectionException,
+    ModelLoadError,
+    PredictionError,
+    TrainingError,
+    to_http_exception,
+)
 from .logging_config import get_logger, setup_logging
 
 __all__ = [

@@ -15,14 +15,22 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from app.api.auth import (create_access_token, get_password_hash,
-                          verify_password, verify_token)
-from app.api.monitoring import (APITimer, PredictionTimer, get_metrics,
-                                record_prediction)
+from app.api.auth import (
+    create_access_token,
+    get_password_hash,
+    verify_password,
+    verify_token,
+)
+from app.api.monitoring import APITimer, PredictionTimer, get_metrics, record_prediction
 from app.api.rate_limiter import check_rate_limit
-from app.api.schemas import (BatchPredictionRequest, BatchPredictionResponse,
-                             HealthResponse, ModelInfoResponse,
-                             PredictionResponse, TransactionRequest)
+from app.api.schemas import (
+    BatchPredictionRequest,
+    BatchPredictionResponse,
+    HealthResponse,
+    ModelInfoResponse,
+    PredictionResponse,
+    TransactionRequest,
+)
 from config.settings import settings
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
