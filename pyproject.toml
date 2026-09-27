@@ -1,0 +1,10 @@
+[tool.isort]
+# Without this, isort's default import-wrapping style (grid alignment,
+# backslash continuations for single-name imports) actively conflicts
+# with black's style (one import per line, trailing comma, parentheses
+# only, never backslashes). Running `black` then `isort` -- or either
+# order -- without this setting means whichever tool runs last silently
+# undoes the other's formatting on any multi-line import, which is why
+# `black --check` kept failing in CI on the same handful of files no
+# matter how many times they were locally reformatted and pushed.
+profile = "black"
